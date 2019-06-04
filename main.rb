@@ -1,5 +1,6 @@
 require 'base64'
-require './resources/colorize'
+require './resources/colorize.rb'
+require'./resources/text-adv-methods.rb'
 # set variables for stats, inventory, time, etc.
 #basic
 $name = "NaN"
@@ -18,7 +19,7 @@ $season = 'Spring'
 print '   Text Adv. alpha 1.1.0'
 newline
 print "      By: Alexander \n"
-print "   Press enter to start \n".blink
+print "   Press enter to start \n"
 foo = gets.chomp.capitalize
 load if foo == 'Load'
 # options
