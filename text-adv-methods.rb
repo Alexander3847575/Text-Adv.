@@ -75,5 +75,5 @@ end
 
 # creates things for a prompt
 def prompt
-  print "=>\e[A\e".blink
+  print "=>\e[A\e"
 end
