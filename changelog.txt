@@ -1,0 +1,38 @@
+              - Changelog: -
+Alpha 0.1 - Start of the game! | 05/16/2019
+  - Basic introduction added
+  - A bit of story added
+Alpha 0.2.0 - Simplification Update | 05/17/2019
+  - Added a third number to the version number
+  - Turnip123 joined the game!
+  - Tiny bit more story added
+  - You can now set your difficulty and gender
+  - LOTS of methods added to simplify adding story
+  - Added global variables for stats and other things like an inventory
+Alpha 0.2.1 | 05/19/2019
+  - Added a lot of comments and this changelog
+  - You now no longer have to restart the story everytime you misspell something
+  - More optimization
+  - Slight differences in difficulty
+Alpha 0.2.2 | 05/20/2019
+  - Fixed major game breaking bugs involving inventory and difficulty
+  - Fixed some formatting
+  - Added more story
+Alpha 0.2.3 | 05/27/2019
+  - Began implementation of save function
+  - Fixed bugs
+Alpha 1.0.0 - The Checkpoint Update | 05/28/2019
+  - Fully implemented save function!
+  - Optimized the entire game
+  - Finished chunk 1
+  - Fixed bugs, most notably the option 1 bug
+Alpha 1.1.0 - Optimizing Optimizations Update | 05/30/2019
+  - Coverted syntax of the set_options methods
+  - Optimized the set_options and print_options methods
+  - Capitalization no longer matters
+  - Fixed bugs
+Alpha 1.1.1 | 6/3/2019
+  - Minor formatting changes
+  - Fixed bugs
+Alpha 1.1.2 | 6/4/2019
+  - Fixed bugs
