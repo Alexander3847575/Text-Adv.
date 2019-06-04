@@ -1,3 +1,4 @@
+require 'base64'
 # defining methods to simplify creating more story
 
 # method to set options as a workaround to not being able to use global variables as method input and also for other purposes
