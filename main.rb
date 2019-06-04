@@ -1,4 +1,3 @@
-require 'base64'
 require './resources/colorize.rb'
 require'./resources/text-adv-methods.rb'
 # set variables for stats, inventory, time, etc.
