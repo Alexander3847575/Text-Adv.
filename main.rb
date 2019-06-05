@@ -21,7 +21,7 @@ loop do
   print 'Text Adv. alpha 1.1.0'.center(26)
   newline
   print "By: Alexander".center(26)
-  print "\n   Press enter to start \n".center(26)
+  print "\n   Press enter to start \n".center(26).blink
   foo = gets.chomp.capitalize
   load if foo == 'Load'
   # options
