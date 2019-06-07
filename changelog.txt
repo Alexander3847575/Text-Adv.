@@ -36,3 +36,9 @@ Alpha 1.1.1 | 6/3/2019
   - Fixed bugs
 Alpha 1.1.2 | 6/4/2019
   - Fixed bugs
+Alpha 1.2.0 | 6/~/2019
+  - No more stub updates like th ones above! Important bugfixes will get their own patches.
+  - Finished chunk 2
+  - Now supports non-binary genders
+  - Optimized the code
+  - Fixed bugs
