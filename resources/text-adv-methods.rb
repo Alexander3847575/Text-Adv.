@@ -5,16 +5,14 @@ require 'base64'
 def set_options(options)
   $options = options
 end
-#thidsnajv
 
 # printing the options set above and checking to see if the story should continue
 def print_options
-  print 'Options:'
+  puts 'Options:'
   $options.each do |option|
-    print "\n- #{option}" if option != 0
+    puts "- #{option}" if option != 0
   end
   $continue = 1 if $options.empty? == true
-  print "\n"
 end
 
 # using the correct pronouns for the specified gender
@@ -25,6 +23,9 @@ def set_gender_specific_words
   elsif $gender == 'Female'
     $gsp1 = 'she'
     $gsp = 'her'
+  else
+    $gsp = 'they'
+    $gsp1 = 'them'
   end
 end
 
@@ -43,12 +44,12 @@ end
 
 # Save function
 def save
-  File.open('game.sav', 'w') do |line|
+  File.open('game.sav', 'w+') do |line|
     save = [$name.to_s, $gender.to_s, $chunk, $inventory, $time.to_s, $variation, $difficulty.to_s]
     line.puts Base64.encode64(save.to_s)
   end
   newline
-  print 'Game saved!'
+  puts 'Game saved!'.green
 end
 
 # Load function
@@ -71,10 +72,10 @@ def step; end
 
 # creates a new line
 def newline
-  print "\n<========================> \n"
+  puts "<========================>".center(26)
 end
 
 # creates things for a prompt
 def prompt
-  print "=>\e[A\e"
+  print "=>\e[A"
 end
