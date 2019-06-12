@@ -41,4 +41,6 @@ Alpha 1.2.0 | 6/~/2019
   - Finished chunk 2
   - Now supports non-binary genders
   - Optimized the code
+  - Methods are now organized into classes
+  - Implemented time
   - Fixed bugs
