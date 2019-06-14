@@ -43,4 +43,6 @@ Alpha 1.2.0 | 6/~/2019
   - Optimized the code
   - Methods are now organized into classes
   - Implemented time
+  - catch +threow 
+  - module
   - Fixed bugs
