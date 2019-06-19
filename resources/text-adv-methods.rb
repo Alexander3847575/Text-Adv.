@@ -37,6 +37,7 @@ module Text_Adv
                 $health + 10
               else
                 100
+              end
     $chunk += 1
   end
 
