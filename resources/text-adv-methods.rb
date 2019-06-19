@@ -37,7 +37,6 @@ module Text_Adv
                 $health + 10
               else
                 100
-              end
     $chunk += 1
   end
 
@@ -72,7 +71,6 @@ module Text_Adv
         $clock = @save[7].to_i
         $season = @save[8].to_s
         Game.set_gender_specific_words
-        $debug = true
         if $debug == true
           print save
           Game.n
@@ -118,8 +116,9 @@ module Text_Adv
     # Checks if the save file is corrupt
     def self.is_corrupt?
       begin
+        @save = ""
         File.open('game.sav').each do |line|
-          @save = Base64.decode64(line.to_s)
+          @save = @save + Base64.decode64(line.to_s)
         end
         $name = @save[0].to_s
         $gender = @save[1].to_s
