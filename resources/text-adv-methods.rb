@@ -7,7 +7,7 @@ module Text_Adv
   $name = "NaN"
   $chunk = 0
   $variation = 0
-  $inventory = []
+  $inventory = [{}]
   # stats
   $health = 100
   $intelligence = 0
@@ -47,7 +47,7 @@ module Text_Adv
     # Save function
     def self.save
       File.open('game.sav', 'w+') do |line|
-        line.puts Base64.encode64("#{$name.to_s},#{$gender.to_s},#{$chunk},#{$inventory},#{$time.to_s},#{$variation},#{$difficulty.to_s},#{$clock.to_s},#{$season.to_s}")
+        line.puts Base64.encode64("#{$name.to_s}|#{$gender.to_s}|#{$chunk}|#{$inventory}|#{$time.to_s}|#{$variation}|#{$difficulty.to_s}|#{$clock.to_s}|#{$season.to_s}")
       end
       Game.n
       Game.newline
@@ -59,9 +59,9 @@ module Text_Adv
     def self.load
       if is_corrupt? == true
         File.open('game.sav').each do |line|
-          @save = Base64.decode64(line.to_s)
+          @save = @save + Base64.decode64(line.to_s)
         end
-        save = @save.split(",")
+        @save = @save.split("|")
         $name = @save[0].to_s
         $gender = @save[1].to_s
         $chunk = @save[2].to_i
@@ -72,6 +72,7 @@ module Text_Adv
         $clock = @save[7].to_i
         $season = @save[8].to_s
         Game.set_gender_specific_words
+        $debug = true
         if $debug == true
           print save
           Game.n
@@ -171,6 +172,14 @@ module Text_Adv
     def self.remove(item)
       $inventory.delete(item)
     end
+
+    def self.contains?(item)
+      if $inventory.include?(item)
+        return true
+      else
+        return false
+      end
+    end
   end
 
   # Option related methods
@@ -200,7 +209,12 @@ module Text_Adv
     def self.remove(options)
       $options.delete(options)
     end
-    
+
+    # Clears all options
+    def self.clear
+      $options = []
+    end
+
     # Checks if the input is an avaliable option
     def self.check(option, input)
       if input.to_s == option.to_s && $options.include?(input.to_s) == true
@@ -268,6 +282,14 @@ module Text_Adv
       elsif $clock >= 721 && $clock <= 1259
         $time = "Evening"
       end
+    end
+  end
+
+  class self::Console
+
+    # Clears the console
+    def self.clear
+      print "\e[H\e[2J"
     end
   end
 end
