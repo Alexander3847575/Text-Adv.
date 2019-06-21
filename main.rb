@@ -1,203 +1,295 @@
-#require 'terminfo'
-require './resources/colorize'
-require'./resources/text-adv-methods'
-Game = Text_Adv
-# if dead
-loop do
-  # intro
-  puts 'Text Adv. alpha 1.1.0'.center(26)
-  Game.newline
-  puts "      By: Alexander\n   Press enter to start".center(26)
-  foo = gets.chomp.capitalize
-  Game.load if foo == 'Load'
-  # options
-  if $chunk == 0
-    loop do
-      puts '  Choose your difficulty'
-      Game.newline
-      Game::Options.set(%w[Easy Medium Hard Hardcore])
-      Game::Options.print
-      Game.prompt
-      $difficulty = gets.chomp.capitalize
-      case $difficulty
-      when 'Easy'
-        break
-      when 'Medium'
-        break
-      when 'Hard'
-        break
-      when 'Hardcore'
-        break
-      else
-        Game.newline
-        puts "That's not an option!"
-        Game.newline
-      end
+module Text_Adv
+  require 'base64'
+  # defining methods to simplify creating more story
+
+  # set variables for stats, inventory, time, etc.
+  #basic
+  $name = "NaN"
+  $chunk = 0
+  $variation = 0
+  $inventory = [{}]
+  # stats
+  $health = 100
+  $intelligence = 0
+  $mana = 100
+  #other
+  $time = 'Morning'
+  $clock = 480
+  $season = 'Spring'
+
+  # using the correct pronouns for the specified gender
+  def self.set_gender_specific_words
+    if $gender == 'Male'
+      $gsp1 = 'he'
+      $gsp2 = 'him'
+    elsif $gender == 'Female'
+      $gsp1 = 'she'
+      $gsp = 'her'
     end
-    loop do
-      puts "\n    What's your name?"
-      Game.newline
-      Game.prompt
-      $name = gets.chomp.capitalize
-      catch :foo
-        puts "\n      Are you sure?"
-        Game.newline
-        Game.prompt
-        foo = gets.chomp.capitalize
-        if foo == 'Yes'
-          throw :foo
-        elsif foo == 'No'
-          break
-        else
-          Game.newline
-          puts "That's not an option!"
-          Game.newline
-          puts "\n"
-        end
-      end
-    end
-    loop do
-      puts "\n    What's your gender?"
-      Game.newline
-      Game.prompt
-      $gender = gets.chomp.capitalize
-      case $gender
-      when 'Male'||'Female'||'Asexual'||'Trans'||'Transgender'
-        break
-      else
-        Game.newline
-        puts "That's not an option!"
-        Game.newline
-        puts "\n"
-      end
-      Game.set_gender_specific_words
-    end
-    Game.eoc
-  end
-  # chunk 1
-  if $chunk == 1
-    puts "\n    Welcome, #{$name}."
-    Game.newline
-    puts "You wake up in the morning, stretching. As you open your eyes, you find yourself on a large beach. You don't remember how you got here, but you feel some items in your pockets."
-    Game::Options.set(['Look around', 'Look in your pockets', 'Go back to sleep', 'Pinch yourself'])
-    while $continue != 1
-      Game.newline
-      Game::Options.print
-      Game.prompt
-      option = gets.chomp.capitalize
-      Game.n
-      $variation = 0
-      if Game::Options.check('Look around', option) == true
-        Game.newline
-        if $difficulty == 'Easy'
-          puts "You examine your surroundings. You're on the edge of the beach and it's nearly all white sand. There's a small kind of forest closer to the center of the island and what looks like campfire ground."
-          $options.insert(0, 'Go to the campfire ground and look around', 'Head into the forest and look around')
-        elsif $difficulty == 'Medium'
-          puts "You examine your surroundings. You're on the edge of the beach and it's nearly all white sand. There's a small kind of forest closer to the center of the island and what looks like campfire ground."
-          $options.insert(0, 'Go to the campfire ground and look around', 'Go to the small-ish forest and look around') # "Palm trees, white sand, turquoise tinted water, coral, etc."
-        elsif $difficulty == 'Hard'
-          puts "You examine your surroundings. You're on the edge of the beach and it's nearly all white sand. There's a small kind of forest closer to the center of the island and what looks like campfire ground."
-          $options.insert(0, 'Go to the campfire ground and look around', 'Go to the small-ish forest and look around')
-        elsif $difficulty == 'Hardcore'
-          puts "You examine your surroundings. You're on the edge of the beach and it's nearly all white sand. There's a small kind of forest closer to the center of the island and what looks like campfire ground."
-          $options.insert(0, 'Go to the campfire ground and look around', 'Go to the small-ish forest and look around')
-        end
-        $options.delete(option)
-      elsif Game::Options.check('Look in your pockets', option) == true
-        foo1 = 0
-        Game.newline
-        $inventory.join(', ')
-        if $difficulty == 'Easy'
-          puts 'You search your pockets for anything that might be of use. You find a lighter, a pocketknife, a wad of soggy cash, a worn down wallet with a credit card and a few other things in it, and an envelope. '
-          Game::Inventory.add(['A lighter', 'Pocketknife', 'Wad of soggy cash', ['Worn down wallet', 'contains credit card', 'library card'], ['Wet envelope', 'contains a note']])
-          foo1 = 1
-        elsif $difficulty == 'Medium'
-          puts 'You search your pockets for anything that might be of use. You find a wad of soggy cash, a worn down wallet with a credit card and a few other things in it, and an envelope. '
-          Game::Inventory.add(['Wad of soggy cash', ['Worn down wallet', 'contains credit card', 'library card'], ['Wet envelope', 'contains a note']])
-          foo1 = 1
-        elsif $difficulty == 'Hard'
-          puts 'You search your pockets for anything that might be of use. You find a wad of mushy, soggy cash and an envelope. '
-          Inventory.add(['Wad of soggy cash', ['Wet envelope', 'contains a note']])
-        elsif $difficulty == 'Hardcore'
-          puts 'You search your pockets for anything that might be of use. You find a wad of soggy cash. It appears to be absolutely destroyed.'
-          Game::Inventory.add(['Destroyed wad of soggy cash'])
-        end
-        Game::Options.remove(option)
-        Game::Options.add('Open the envelope') if foo1 == 1
-      elsif Game::Options.check('Go back to sleep', option) == true
-        Game.newline
-        puts "You decide to go back to sleep on the warm beach in the nice, soft, sand, hoping you'll wake up in your bed. \nThe sun shines overhead... \nZzz... \nZzz..."
-        Game::Options.remove(option)
-        $continue = 1
-        $variation = 1
-        if $difficulty == 'Easy' || $difficulty == 'Medium'
-          $time = 'Evening'
-        elsif $difficulty == 'Hard' || $difficulty == 'Hardcore'
-          $time = 'Night'
-        end
-      elsif Game::Options.check('Pinch yourself', option) == true
-        Game.newline
-        puts "You pinch yourself, hoping that you're dreaming. It hurts sharply. Well, guess that's ruled out. \n#{"-1 HP".red}"
-        $health -= 1
-        Game::Options.remove(option)
-      elsif Game::Options.check('Pinch yourself', option)
-        newline
-        puts "You pinch yourself again, still hoping that you're dreaming. It hurts even more. It really dosen't seem like you're dreaming. \n#{"-1 HP".red}"
-        $health -= 1
-      elsif Game::Options.check('Open the envelope', option) == true
-        newline
-        puts 'You open the envelope, being careful not to tear the soggy paper. Inside, you find a holiday card. It has a pretty handmade drawing of a firework bursting on the front but after peeling it open, the ink has bled too much to be readable. You notice a small keychain taped to the side which has managed to stay on even after the card being soaked.'
-        Game::Options.add('Examine the keychain')
-        Game::Options.remove(option)
-      elsif Game::Options.check('Examine the keychain', option) == true
-        Game.newline
-        puts "You look closer at the keychain and you notice that even after the beating it's been through, it still appears to be brand new. You recognize the emblem on the front even though you don't remember ever seeing it. On the back is a little slot for a watch battery, but it dosen't currently have one in it."
-        Game::Options.remove(option)
-      elsif Game::Options.check('Insert the watch battery', option) == true
-        Game.newline
-        puts 'You insert the watch battery into the small slot in the keychain. It lights up with a yellow glow, and you realize that the sun emblem on the front is really 8 different buttons with a central large one.'
-        Game::Options.add('Press a button', 'Press the center one')
-      else
-        if $options.include?(option.to_s) == false
-          Game.newline
-          puts "That's not an option!"
-        end
-      end
-      if $health == 0
-        n
-        newline
-        puts "You've been playing this game far too long. \nYou have earned the Determined Pincher acheivement! \n+1 Watch battery"
-        Game::Inventory.add('Watch battery')
-        Game::Options.add('Insert the watch battery')
-        Game::Achivements.add('Determined Pincher')
-      end
-      Game::Time.step
-    end
-    Game.eoc
   end
 
-  if $chunk == 2
-    # chunk 2
-    if $variation == 0
-      Game::Options.set
-      while $continue != 1
-        Game.newline
-        Game.print_options
-        Game.prompt
-        option = gets.chomp.capitalize
-        if option == "blah"
-        end
+  # Resets things at the end of a chunk
+  def self.eoc
+    $continue = 0
+    Save.save
+    Time.step
+    $health = if ($health + 10) > 101
+                $health + 10
+              else
+                100
+              end
+    $chunk += 1
+  end
+
+  # Save related methods
+  class self::Save
+
+    # Save function
+    def self.save
+      File.open('game.sav', 'w+') do |line|
+        line.puts Base64.encode64("#{$name.to_s}|#{$gender.to_s}|#{$chunk}|#{$inventory}|#{$time.to_s}|#{$variation}|#{$difficulty.to_s}|#{$clock.to_s}|#{$season.to_s}")
       end
-    elsif $variation == 1
-      Game::Options.set
-      while continue != 1
-        Game.newline
-        Game.print_options
-        Game.prompt
-        option = gets.chomp.capitalize
-        if option == "blah"
+      Game.n
+      Game.newline
+      puts 'Game saved!'.green
+      Game.newline
+    end
+
+    # Load function
+    def self.load
+      if is_corrupt? == true
+        File.open('game.sav').each do |line|
+          @save = @save + Base64.decode64(line.to_s)
         end
+        @save = @save.split("|")
+        $name = @save[0].to_s
+        $gender = @save[1].to_s
+        $chunk = @save[2].to_i
+        $inventory = @save[3].to_s
+        $time = @save[4].to_s
+        $variation = @save[5].to_i
+        $difficulty = @save[6].to_s
+        $clock = @save[7].to_i
+        $season = @save[8].to_s
+        Game.set_gender_specific_words
+        $debug = true
+        if $debug == true
+          print save
+          Game.n
+          print $name
+          Game.n
+          print $gender
+          Game.n
+          print $chunk
+          Game.n
+          print $inventory
+          Game.n
+          print $time
+          Game.n
+          print $variation
+          Game.n
+          print $difficulty
+          Game.n
+        end
+      elsif is_corrupt? != "Empty"
+        puts 'Your save data has been corrupted. Would you like to wipe it or attempt to fix it?'
+        Options.set(["Wipe the save data", "I'll fix it myself!"])
+        Options.print
+        foo = gets.chomp.capitalize
+        if foo == "Wipe the save data"
+          wipe
+        end
+      elsif is_corrupt? == "Empty"
+        Game.n
+        Game.newline
+        puts "Your save data is empty!"
+        Game.newline
+        Game.n
       end
+    end
+
+    # Wipes the save
+    def self.wipe
+      File.open("game.sav", 'w+').each do |line|
+        line = nil
+      end
+    end
+
+    # Checks if the save file is corrupt
+    def self.is_corrupt?
+      begin
+        @save = ""
+        File.open('game.sav').each do |line|
+          @save = @save + Base64.decode64(line.to_s)
+        end
+        $name = @save[0].to_s
+        $gender = @save[1].to_s
+        $chunk = @save[2].to_i
+        $inventory = @save[3].to_s
+        $time = @save[4].to_s
+        $variation = @save[5].to_i
+        $difficulty = @save[6].to_s
+        $clock = @save[7].to_i
+        $season = @save[8].to_s
+        if @save.is_a?(Array) && $difficulty == 'Easy' or $difficulty == 'Medium' or $difficulty == 'Hard' or $difficulty == 'Hardcore' && $chunk.is_a?(Integer) && $gender == 'Male' or $gender == 'Female' or $gender == 'Trans' or $gender == 'Transgender' && $inventory.is_a?(Array) && $time.is_a?(String) && $variation.is_a?(Integer) && $clock.is_a?(Integer)
+          return false
+        else
+          return true
+        end
+      rescue NoMethodError => foo
+        puts foo if $debug == true
+        return "Empty"
+      end
+    end
+  end
+
+
+  # creates a new line
+  def self.newline
+    puts '<========================>'.center(26)
+  end
+
+  # creates things for a prompt
+  def self.prompt
+    print "=> "
+  end
+
+  def self.n(times = 1)
+    times.times do
+      print "\n"
+    end
+  end
+  
+  # Inventory related methods
+  class self::Inventory
+
+    # Add an item to the inventory
+    def self.add(item)
+      $inventory.insert(0, item)
+    end
+
+    # Remove an item from the inventory
+    def self.remove(item)
+      $inventory.delete(item)
+    end
+
+    def self.contains?(item)
+      if $inventory.include?(item)
+        return true
+      else
+        return false
+      end
+    end
+  end
+
+  # Option related methods
+  class self::Options
+
+    # Method to set options as a workaround to not being able to use global variables as method input and also for other purposes
+    def self.set(options)
+      $options = options
+    end
+
+    # Printing the options set and checking to see if the story should continue
+    def self.print
+      Game.newline
+      puts 'Options:'
+      $options.each do |option|
+        puts "- #{option}" if option != 0
+      end
+      $continue = 1 if $options.empty? == true
+    end
+
+    # Adds (an) option(s)
+    def self.add(options)
+      $options.insert(0, options)
+    end
+
+    # Deletes (an) option(s)
+    def self.remove(options)
+      $options.delete(options)
+    end
+
+    # Clears all options
+    def self.clear
+      $options = []
+    end
+
+    # Checks if the input is an avaliable option
+    def self.check(option, input)
+      if input.to_s == option.to_s && $options.include?(input.to_s) == true
+        true
+      else
+        false
+      end
+    end
+  end
+
+  # Time related methods
+  class self::Time
+
+    # Sets the time
+    def self.set(time)
+      if time.is_a?(String)
+        $time = time
+      elsif time.is_a?(Integer)
+        $clock = time
+      else
+        Game.n
+        Game.newline
+        puts "Invalid input!"
+        Game.newline
+        Game.n
+      end
+      advance
+    end
+
+    # Advances the time
+    def self.step(unit=1)
+      foo = $time
+      if $clock > 1440
+        $clock += unit
+        $clock -= 1440
+      else
+        $clock += unit
+      end
+      advance
+      if $time != foo
+        print
+      end
+    end
+
+    # Prints the current time
+    def self.print
+      Game.n
+      Game.newline
+      puts "It is now #{$time}."
+      Game.newline
+      Game.n
+    end
+
+    def self.advance
+      if $clock >= 1260 && $clock <= 1399
+        $time = "Night"
+      elsif $clock == 1440
+        $time = "Midnight"
+      elsif $clock >= 0 && $clock <= 329
+        $time = "Early morning"
+      elsif $clock >= 360 && $clock <= 719
+        $time = "Morning"
+      elsif $clock == 720
+        $time = "Noon"
+      elsif $clock >= 721 && $clock <= 1259
+        $time = "Evening"
+      end
+    end
+  end
+
+  class self::Console
+
+    # Clears the console
+    def self.clear
+      print "\e[H\e[2J"
     end
   end
 end
