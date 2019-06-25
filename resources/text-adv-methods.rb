@@ -4,19 +4,6 @@ module Text_Adv
 
   # set variables for stats, inventory, time, etc.
   #basic
-  $name = "NaN"
-  $chunk = 0
-  $variation = 0
-  $inventory = [{}]
-  # stats
-  $health = 100
-  $intelligence = 0
-  $mana = 100
-  #other
-  $time = 'Morning'
-  $clock = 480
-  $season = 'Spring'
-
   # using the correct pronouns for the specified gender
   def self.set_gender_specific_words
     if $gender == 'Male'
@@ -31,7 +18,6 @@ module Text_Adv
   # Resets things at the end of a chunk
   def self.eoc
     $continue = 0
-    Save.save
     Time.step
     $health = if ($health + 10) > 101
                 $health + 10
@@ -39,6 +25,7 @@ module Text_Adv
                 100
               end
     $chunk += 1
+    Save.save
   end
 
   # Save related methods
@@ -47,7 +34,7 @@ module Text_Adv
     # Save function
     def self.save
       File.open('game.sav', 'w+') do |line|
-        line.puts Base64.encode64("#{$name.to_s}|#{$gender.to_s}|#{$chunk}|#{$inventory}|#{$time.to_s}|#{$variation}|#{$difficulty.to_s}|#{$clock.to_s}|#{$season.to_s}")
+        line.puts Base64.strict_encode64("#{$name.to_s}|#{$gender.to_s}|#{$chunk.to_i}|#{$inventory}|#{$time.to_s}|#{$variation}|#{$difficulty.to_s}|#{$clock.to_s}|#{$season.to_s}|#{$options}")
       end
       Game.n
       Game.newline
@@ -59,22 +46,23 @@ module Text_Adv
     def self.load
       if is_corrupt? == true
         File.open('game.sav').each do |line|
-          @save = @save + Base64.decode64(line.to_s)
+          @save = Base64.decode64(line.to_s)
         end
         @save = @save.split("|")
-        $name = @save[0].to_s
-        $gender = @save[1].to_s
-        $chunk = @save[2].to_i
-        $inventory = @save[3].to_s
-        $time = @save[4].to_s
-        $variation = @save[5].to_i
-        $difficulty = @save[6].to_s
-        $clock = @save[7].to_i
-        $season = @save[8].to_s
+        $name = @save[0]
+        $gender = @save[1]
+        $chunk = @save[2]
+        $inventory = @save[3]
+        $time = @save[4]
+        $variation = @save[5]
+        $difficulty = @save[6]
+        $clock = @save[7]
+        $season = @save[8]
+        $options = @save[9]
         Game.set_gender_specific_words
         $debug = true
         if $debug == true
-          print save
+          print @save
           Game.n
           print $name
           Game.n
@@ -100,11 +88,13 @@ module Text_Adv
           wipe
         end
       elsif is_corrupt? == "Empty"
-        Game.n
-        Game.newline
+        Game.n1
         puts "Your save data is empty!"
-        Game.newline
-        Game.n
+        Game.n2
+      else
+        Game.n1
+        puts "Something went wrong while making sure the file wasn't corrupt. Please contact the developers at Github to let them know about this issue."
+        Game.n2
       end
     end
 
@@ -118,20 +108,21 @@ module Text_Adv
     # Checks if the save file is corrupt
     def self.is_corrupt?
       begin
-        @save = ""
         File.open('game.sav').each do |line|
-          @save = @save + Base64.decode64(line.to_s)
+          @save = Base64.decode64(line.to_s)
         end
+        @save = @save.split("|")
         $name = @save[0].to_s
         $gender = @save[1].to_s
-        $chunk = @save[2].to_i
-        $inventory = @save[3].to_s
-        $time = @save[4].to_s
-        $variation = @save[5].to_i
+        $chunk = @save[2]
+        $inventory = @save[3]
+        $time = @save[4]
+        $variation = @save[5]
         $difficulty = @save[6].to_s
-        $clock = @save[7].to_i
-        $season = @save[8].to_s
-        if @save.is_a?(Array) && $difficulty == 'Easy' or $difficulty == 'Medium' or $difficulty == 'Hard' or $difficulty == 'Hardcore' && $chunk.is_a?(Integer) && $gender == 'Male' or $gender == 'Female' or $gender == 'Trans' or $gender == 'Transgender' && $inventory.is_a?(Array) && $time.is_a?(String) && $variation.is_a?(Integer) && $clock.is_a?(Integer)
+        $clock = @save[7]
+        $season = @save[8]
+        $options = @save[9]
+        if $difficulty == 'Easy' or $difficulty == 'Medium' or $difficulty == 'Hard' or $difficulty == 'Hardcore' && $chunk.is_a?(Integer) && $gender == 'Male' or $gender == 'Female' or $gender == 'Trans' or $gender == 'Transgender' && $inventory.is_a?(Array) && $time.is_a?(String) && $variation.is_a?(Integer) && $clock.is_a?(Integer) && $options.is_a?(Array)
           return false
         else
           return true
@@ -159,7 +150,17 @@ module Text_Adv
       print "\n"
     end
   end
-  
+
+  def self.n1
+    n
+    newline
+  end
+
+  def self.n2
+    newline
+    n
+  end
+
   # Inventory related methods
   class self::Inventory
 
@@ -206,8 +207,8 @@ module Text_Adv
     end
 
     # Deletes (an) option(s)
-    def self.remove(options)
-      $options.delete(options)
+    def self.remove
+      $options.delete($option)
     end
 
     # Clears all options
@@ -216,8 +217,8 @@ module Text_Adv
     end
 
     # Checks if the input is an avaliable option
-    def self.check(option, input)
-      if input.to_s == option.to_s && $options.include?(input.to_s) == true
+    def self.check(option)
+      if $option.to_s == option.to_s && $options.include?(input.to_s) == true
         true
       else
         false
@@ -235,11 +236,9 @@ module Text_Adv
       elsif time.is_a?(Integer)
         $clock = time
       else
-        Game.n
-        Game.newline
+        Game.n1
         puts "Invalid input!"
-        Game.newline
-        Game.n
+        Game.n2
       end
       advance
     end
@@ -261,11 +260,9 @@ module Text_Adv
 
     # Prints the current time
     def self.print
-      Game.n
-      Game.newline
+      Game.n1
       puts "It is now #{$time}."
-      Game.newline
-      Game.n
+      Game.n2
     end
 
     def self.advance
