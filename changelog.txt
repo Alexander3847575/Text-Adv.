@@ -37,7 +37,7 @@ Alpha 1.1.1 | 6/3/2019
   - Fixed bugs
 Alpha 2.9.0 - I'm Really Lazy Update | 02/0/2020
   - It's been a while, huh?
-  - This projct isn't dead
+  - This project isn't dead
   - Waaaay too many changes to list (over double the original project size), so here's some:
   - You can now have as many saves as you want!
   - Achievements!
