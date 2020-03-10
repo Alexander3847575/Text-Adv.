@@ -1,63 +1,84 @@
-#todo: add multiple dynamic savestates
-#todo add a CRAPLOAD of story
 #require 'terminfo'
 require './resources/colorize'
 require './resources/MochiLib(WIP).rb'
 Game = MochiLib
 Game::Debug.log("Dependencies have been called")
-$name = nil
-$gender = nil
-$chunk = 0
-$inventory = []
-$achievements = []
-$time = "Morning"
-$variation = 0
-$difficulty = nil
-$clock = 480
-$season = "Spring"
-$health = 100
-$continue = 0
-Game::Debug.log("Variables have been set sucessfully")
 # if dead
 catch :dead do
-  # intro
+  # intro chunk
   Game.n(2)
   puts 'Text Adv. alpha 1.2.0'.center(26)
   Game.line
   puts "      By: Alexander\n   Press enter to start".center(26)
   foo = gets.chomp.capitalize.clean
   puts 'Welcome!'.center(26)
-  loop do
-    Game::Options.set(["Start a new game", "Load an existing game"])
-    Game::Options.print
-    Game.prompt
-    tmp23454362345324 = gets.chomp.capitalize
-    case tmp23454362345324
-    when "Start a new game"
-      Game.n
-      puts 'Are you sure?'.center(26)
-      if Game::Options.yn == "Yes"
-        break
+  catch :foo do
+    loop do
+      Game::Options.set(["Start a new game", "Load an existing game"])
+      Game::Options.print
+      Game.prompt
+      tmps = gets.chomp.capitalize
+      tmpa0 = []
+      tmpa = Dir.entries("saves").select {|f| !File.directory? f} # find out how to detect the type of an variable + incorporate into library in case of empty saves folder
+      Game::Debug.log("File directory saves scanned")
+      tmpa.each do |a|
+        if a.end_with?(".sav")
+          # Remove postpostion (file extention) from string
+        else
+          puts "543"
+          tmpa0.insert(0, a)
+          Game::Debug.log("#{a} is not a valid save file; removing from list", "debug")
+        end
       end
-    when "Load an existing game"
-      Game.n
-      puts 'Are you sure?'.center(26)
-      if Game::Options.yn == "Yes"
-        puts "Select a save file:".c
-        tmp21235 = Dir.entries("saves").select {|f| !File.directory? f}
-        Game::Debug.log("File directory \"saves\" scanned")
-        Game::Options.set(tmp21235)
-        Game::Options.print
-        #============================flag;';'';'';';'';';';';'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\kkkkkkkk
-        Game::Save.load
-        break
+      tmpa0.each do |a|
+        tmpa.delete(a)
       end
-    else
-      Game::Options.nao
+      case tmps
+      when "Start a new game" # load multiple saves
+        Game.n
+        puts 'Are you sure?'.center(26)
+        if Game::Options.yn == "Yes"
+          loop do
+            puts 'What do you want to name your save?'
+            Game.prompt
+            tmps = gets.chomp
+            if tmpa.include?(tmps)
+              Game.n1
+              puts "That's already a save file!"
+              Game.n2
+            else
+              $currentsave = tmps
+              throw :foo
+            end
+          end
+        end
+      when "Load an existing game"
+        Game.n
+        puts 'Are you sure?'.center(26)
+        if Game::Options.yn == "Yes"
+          loop do
+            Game.n
+            puts "Select a save file:".c
+            Game::Options.set(tmpa)
+            Game::Options.print
+            tmps = gets.chomp
+            if tmpa.include?(tmps)
+              if Game::Save.load(tmps) == "ok"
+                throw :foo
+              end
+            else
+              Game::Options.nao
+            end
+          end
+        end
+      else
+        Game::Options.nao
+      end
     end
   end
   Game::Debug.log("Game has been started", "debug")
-  # options
+
+  # options chunk
   if $chunk == 0
     Game::Debug.log("Chunk 0 has been started")
     loop do
@@ -80,18 +101,16 @@ catch :dead do
         Game::Options.nao
       end
     end
-    Game::Debug.log("Difficulty \"#{$difficulty}\" has been chosen")
-    catch :foo do
-      loop do
-        Game.n
-        puts "\n    What is your name?"
-        Game.line
-        Game.prompt
-        $name = gets.chomp
-        Game.n
-        puts "Are you sure?".center(26)
-        Game::Options.yn
-      end
+    Game::Debug.log("Difficulty #{$difficulty} has been chosen")
+    loop do
+      Game.n
+      puts "\n    What is your name?"
+      Game.line
+      Game.prompt
+      $name = gets.chomp
+      Game.n
+      puts "Are you sure?".center(26)
+      break if Game::Options.yn
     end
     Game::Debug.log("Name \"#{$name}\" has been chosen")
     loop do
@@ -99,7 +118,7 @@ catch :dead do
       puts "    What is your gender?"
       Game.line
       Game.prompt
-      $gender = gets.chomp.capitalize.clean
+      $gender = gets.chomp.capitalize
       case $gender
       when 'Male'
         break
@@ -112,19 +131,20 @@ catch :dead do
       when 'Transgender'
         break
       when 'Attack helicopter'
-        Game::Achievements.give("He attacc")
+        Game::Achievements.give("He attacc", "Become the legend.")
         break
       else
         Game::Options.nao
       end
     end
-    Game::Debug.log("Gender \"#{$gender}\" has been chosen")
-    Game.set_gender_specific_words
+    Game::Debug.log("Gender #{$gender} has been chosen")
+    Game.sgsw
     Game.eoc
     Game::Debug.log("Chunk 0 has ended")
   end
   Game::Debug.log("Chunk 0 has been passed", "debug")
-  # chunk 1
+
+  # first night chunk
   if $chunk == 1
     Game::Debug.log("Chunk 1 has started")
     puts "\n    Welcome, #{$name}."
@@ -135,16 +155,15 @@ catch :dead do
       Game::Options.print
       Game.prompt
       $option = gets.chomp.capitalize.strip
-      Game::Debug.log("Option \"#{$option}\" has been chosen")
+      Game::Debug.log("Option #{$option} has been chosen")
       Game.n
       Game.line
-      $variation = 0
       bar = 1
       if Game::Options.check('Look around') == true
         if $difficulty == 'Easy'
           puts "You examine your surroundings. You're on the edge of a beach with fine, white sand inside a shallow lagoon with crystal clear turquoise water and the edges of the bay stretching around. There's plenty of bright, colorful fish and other sea creatures living among the barnacle adorned rocks, neon coral peeking out in between. Behind you, you can see the edge of a tropical forest closer to the center of the island with mountains looming in the background and what seems to be an decently sized plain running alongside the beach. It seems like a perfect tropical island that you have no idea how to survive on."
         elsif $difficulty == 'Medium'
-          puts "You examine your surroundings. You're on the edge of a beach with fine, white sand inside a shallow lagoon with clear turquoise water and the edges of the bay stretching around. You spot some tropical-looking fish and other sea creatures living among the barnacle adorned rocks. Behind you, you can see the edge of a tropical forest closer to the center of the island with huge mountains looming in the background and what seems to be an endless plain running alongside the beach. It seems like a perfect tropical island that you have no idea how to survive on."
+          puts "You examine your surroundings. You're on the edge of a beach with fine, white sand inside a shallow lagoon with clear turquoise water and the edges of the bay stretching around. You spot some tropical-looking fish and other sea creatures living among the barnacle adorned rocks. Behind you, you can see the edge of a tropical forest closer to the center of the island with huge mountains looming in the background and what seems to be an endless plain running alongside the beach. It seems like a perfectly tropical island that you have no idea how to survive on."
         elsif $difficulty == 'Hard'
           puts "You examine your surroundings. You're on the edge of a beach with fine, white sand inside a lagoon with turquoise water and the edges of the bay stretching around. There's a few dark colored fish and a few dangerous-looking sea creatures living among the barnacle adorned rocks. Behind you, you can see the edge of a dark tropical forest closer to the center of the island with huge, misty mountains looming in the background and what seems to be an endless plain running alongside the beach. It seems like a tropical island that you have no idea how to survive on."
         elsif $difficulty == 'Hardcore'
@@ -152,7 +171,6 @@ catch :dead do
         end
         Game::Options.add('Go to the plain and see how far it goes')
         Game::Options.add('Head into the tropical forest')
-        #Game::Options.remove
         Game::Options.remove('Go back to sleep')
       elsif Game::Options.check('Head into the tropical forest') == true
         $variation = 1
@@ -194,9 +212,11 @@ catch :dead do
         $continue = 1
         $variation = 0
         if $difficulty == 'Easy' || $difficulty == 'Medium'
-          Game::Time.set('Evening')
+          Game::Time.set(721)
         elsif $difficulty == 'Hard' || $difficulty == 'Hardcore'
-          Game::Time.set('Night')
+          Game::Time.set(1260)
+          #skip to chunk 3
+          $chunk = 2
         end
       elsif Game::Options.check('Pinch yourself') == true
         puts "You pinch yourself, hoping that you're dreaming. It hurts sharply. Well, guess that's ruled out. \n#{"-1 HP".red}"
@@ -218,6 +238,8 @@ catch :dead do
       else
         if $options.include?($option.to_s) == false
           Game::Options.nao
+        else
+          puts "Please tell the devs that they forgot to implement a function for #{$option}"
         end
       end
       if $health == 0
@@ -235,8 +257,9 @@ catch :dead do
     Game::Debug.log("Chunk 1 has ended")
   end
   Game::Debug.log("Chunk 1 has been passed", "debug")
+
+  # first day chunk
   if $chunk == 2
-    # chunk 2
     Game::Debug.log("Chunk 2 has started")
     if $variation == 0
       Game::Options.set(["Gather wood from the forest", "Look around", "Sit there and wait"])
@@ -256,16 +279,12 @@ catch :dead do
         if Game::Options.check("") == true
           puts "You have reached the end of the content; please wait for the next update."
         else
-          Game.n
-          Game.line
-          puts "That's not an option!"
-          Game.line
-          Game.n
+          Game::Options.nao
         end
       end
     elsif $variation == 1
       $variation = 0
-      Game::Options.set(%w["WIP" "WIP" "WIP"])
+      Game::Options.set(["WIP", "WIP", "WIP"])
       Game.n
       Game.line
       puts "You head into the forest."
@@ -280,9 +299,8 @@ catch :dead do
   Game::Debug.log("Chunk 2 has been passed", "debug")
 end
 puts "You Died!".red
-if $difficulty == "Hardcore"
-  Game::Save.wipe
-end
+Game::Save.wipe($currentsave) if $difficulty == "Hardcore"
+
+
 exit
 #Improved formatting, better descriptions, hardcore now deletes your gamesave if you die, fixed bugs, finished chunk 1, implemented new methods, reorganized classes, fixed save function, added end of content, time, 
-#todo: automate the when cand case staements for options
