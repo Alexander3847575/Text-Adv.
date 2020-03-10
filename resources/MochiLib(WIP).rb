@@ -1,23 +1,36 @@
 module MochiLib
   require 'base64'
   require "logger"
+  $name = nil
+  $gender = nil
+  $chunk = 0
+  $inventory = []
+  $achievements = []
+  $time = "Morning"
+  $variation = 0
+  $difficulty = nil
+  $clock = 480
+  $season = "Spring"
+  $health = 100
+  $continue = false
+  $currentsave = ""
   # defining methods to simplify creating more story
   # set variables for stats, inventory, time, etc.
   #basic
   # using the correct pronouns for the specified gender
-  def self.set_gender_specific_words
+  def self.sgsw
     if $gender == 'Male'
       $gsp1 = 'he'
       $gsp2 = 'him'
     elsif $gender == 'Female'
       $gsp1 = 'she'
-      $gsp = 'her'
+      $gsp2 = 'her'
     end
   end
 
   # Resets things at the end of a chunk
   def self.eoc
-    $continue = 0
+    $continue = false
     Time.step
     $health = if ($health + 10) > 101
                 $health + 10
@@ -25,26 +38,23 @@ module MochiLib
                 100
               end
     $chunk += 1
-    Save.save
+    Save.save($currentsave)
   end
 
   # Work in progress
   def self.WIP
-    Game::Options.set(%w["WIP" "WIP" "WIP" "Exit"])
-    Game::Options.print
-    Game.prompt
-    Game.n
-    Game.line
+    MochiLib::Options.set(%w["WIP" "WIP" "WIP" "Exit"])
+    MochiLib::Options.print
+    MochiLib.prompt
+    MochiLib.n1
     if $option == "Wip"
       puts "You have reached the end of the content;  please wait for the next update."
     elsif $option == "Exit"
       exit
     else
-      Game.n
-      Game.line
+      MochiLib.n1
       puts "That's not an option!"
-      Game.line
-      Game.n
+      MochiLib.n2
     end
   end
 
@@ -80,22 +90,24 @@ module MochiLib
     # Save function
     def self.save(name="")
       File.open("./saves/#{name}.sav", 'w+') do |line|
-        line.puts Base64.strict_encode64("#{$name.to_s} #{$gender.to_s} #{$chunk.to_i} #{$inventory} #{$time.to_s} #{$variation} #{$difficulty.to_s} #{$clock.to_s} #{$season.to_s} #{$options}")
+        line.puts Base64.strict_encode64("#{$name.to_s}|#{$gender.to_s}|#{$chunk.to_i}|#{$inventory}|#{$time.to_s}|#{$variation}|#{$difficulty.to_s}|#{$clock.to_s}|#{$season.to_s}|#{$options}|#{$achievements}")
       end
-      Game.n1
+      MochiLib::Debug.log("Game saved!")
+      MochiLib.n1
       puts 'Game saved!'.green
-      Game.line
+      MochiLib.line
     end
 
     # Load function
     def self.load(name="")
-      if is_corrupt? == false
+      cs = is_corrupt?(name)
+      if cs == false
         File.open("./saves/#{name}.sav").each do |line|
           @save = Base64.decode64(line.to_s)
         end
-        Game::Debug.log("Save file #{name} has been opened and @save set", "debug")
-        @save = @save.split("\\")
-        Game::Debug.log("@save has been split", "debug")
+        MochiLib::Debug.log("Save file #{name} has been opened and @save set", "debug")
+        @save = @save.split("|")
+        MochiLib::Debug.log("@save has been split", "debug")
         $name = @save[0].to_s
         $gender = @save[1].to_s
         $chunk = @save[2].to_i
@@ -106,75 +118,83 @@ module MochiLib
         $clock = @save[7].to_i
         $season = @save[8].to_s
         $options = @save[9]
-        $continue = 0
-        Game.set_gender_specific_words
-        Game::Debug.log("@save is #{@save}", "debug")
-        Game::Debug.log("Name has been set to #{$name}", "debug")
-        Game::Debug.log("Gender has been set to #{$gender}", "debug")
-        Game::Debug.log("Chunk has been set to #{$chunk}", "debug")
-        Game::Debug.log("Inventory has been set to #{$inventory}", "debug")
-        Game::Debug.log("Time has been set to #{$time}", "debug")
-        Game::Debug.log("Variation has been set to #{$variation}", "debug")
-        Game::Debug.log("Difficulty has been set to #{$difficulty}", "debug")
-      elsif is_corrupt? == true
-        Game.n
+        $achievements = @save[10]
+        $continue = false
+        MochiLib.sgsw
+        MochiLib::Debug.log("@save is #{@save}", "debug")
+        MochiLib::Debug.log("Name has been set to #{$name}", "debug")
+        MochiLib::Debug.log("Gender has been set to #{$gender}", "debug")
+        MochiLib::Debug.log("Chunk has been set to #{$chunk}", "debug")
+        MochiLib::Debug.log("Inventory has been set to #{$inventory}", "debug")
+        MochiLib::Debug.log("Time has been set to #{$time}", "debug")
+        MochiLib::Debug.log("Variation has been set to #{$variation}", "debug")
+        MochiLib::Debug.log("Difficulty has been set to #{$difficulty}", "debug")
+        return "ok"
+      elsif cs == true
+        MochiLib.n
         puts 'Your save data has been corrupted. Would you like to wipe it or attempt to fix it?'
         Options.set(["Wipe the save data", "I'll fix it myself!"])
         Options.print
         foo = gets.chomp.capitalize
-        if foo == "Wipe the save data"
-          wipe
-        end
-      elsif is_corrupt? == "Empty"
-        Game.n1
+        wipe($currentsave) if foo == "Wipe the save data"
+        return "corrupt"
+      elsif cs == "Empty"
+        MochiLib.n1
         puts "Your save data is empty!"
-        Game.n2
+        MochiLib.n2
+        return "empty"
       else
-        Game.n1
+        MochiLib.n1
         puts "Something went wrong while making sure the file wasn't corrupt. Please contact the developers at Github to let them know about this issue."
-        Game.n2
-        Game::Debug.log("Corruption checking returned something unexpected", "error")
+        MochiLib.n2
+        MochiLib::Debug.log("Corruption checking returned something unexpected", "error")
+        return "???"
       end
     end
 
     # Wipes the save
-    def self.wipe
-      File.open("game.sav", 'w+').each do |line|
+    def self.wipe(save)
+      File.open("#{save}.sav", 'w+').each do |line|
         line = nil
       end
     end
 
     # Checks if the save file is corrupt
-    def self.is_corrupt?
-      Game::Debug.log("is_corrupt has been called", "debug") if $extra == true
+    def self.is_corrupt?(name)
+      MochiLib::Debug.log("is_corrupt has been called", "debug") if $extra == true
       begin
-        File.open('game.sav').each do |line|
+        File.open("./saves/#{name}.sav").each do |line|
           @save = Base64.decode64(line.to_s)
         end
-        @save = @save.split("\\")
-        $name = @save[0]
-        $gender = @save[1]
-        $chunk = @save[2]
+        MochiLib::Debug.log("Save file #{name} has been opened and @save set in save checker", "debug") if $extra == true
+        @save = @save.split("|")
+        MochiLib::Debug.log("@save has been split in save checker", "debug") if $extra == true
+        $name = @save[0].to_s
+        $gender = @save[1].to_s
+        $chunk = @save[2].to_i
         $inventory = @save[3]
-        $time = @save[4]
-        $variation = @save[5]
-        $difficulty = @save[6]
-        $clock = @save[7]
-        $season = @save[8]
+        $time = @save[4].to_s
+        $variation = @save[5].to_i
+        $difficulty = @save[6].to_s
+        $clock = @save[7].to_i
+        $season = @save[8].to_s
         $options = @save[9]
+        $achievements = @save[10]
+        $continue = false
+        MochiLib::Debug.log("iouh", "debug")
         if @save.is_a?(Array) && @save.length == 9 && $difficulty == 'Easy' or $difficulty == 'Medium' or $difficulty == 'Hard' or $difficulty == 'Hardcore' && $chunk.is_a?(Integer) && $gender == 'Male' or $gender == 'Female' or $gender == 'Trans' or $gender == 'Transgender' && $inventory.is_a?(Array) && $time.is_a?(String) && $variation.is_a?(Integer) && $clock.is_a?(Integer) && $options.is_a?(Array)
-          Game::Debug.log("Game save has been checked and is not corrupt")
-          return true
-        else
-          Game::Debug.log("Game save has been checked and is corrupt", "error")
+          MochiLib::Debug.log("Game save has been checked and is not corrupt")
           return false
+        else
+          MochiLib::Debug.log("Game save has been checked and is corrupt (non-matching variables)", "error")
+          return true
         end
       rescue NoMethodError => foo
-        Game::Debug.log("Game save is empty (#{foo})", "error")
+        MochiLib::Debug.log("Game save is empty (#{foo})", "error")
         return "Empty"
       rescue Exception => bar
-        Game::Debug.log("Game save has been checked and is corrupt", "error")
-        return false
+        MochiLib::Debug.log("Game save has been checked and is corrupt (#{bar})", "error")
+        return true
       end
     end
   end
@@ -200,11 +220,43 @@ module MochiLib
         return false
       end
     end
+
+    # Printing a list of all items in inventory
+    def self.print
+      #parser for each item
+      $inventory.each do |item|
+        item.length do |a|
+          str = ""
+          b = 0
+          #detecting special character
+          if a == "|"
+            #printing out in appropriate formatting
+            case b
+            when 0
+              puts str
+            when 1
+              puts str.italic
+            when 2
+              puts str.bold
+            else
+              MochiLib::Debug.log("Invalid item #{item}!")
+              puts "Error: Invalid item!"
+            end
+            b += 1
+          else
+            str = str + a
+          end
+        end
+      end
+    end
   end
 
   class self::Achievements
-    def self.give(achievement)
-      $achievements.insert(0, achievement)
+    def self.give(achievement, description)
+      $achievements.insert(0, [achievement,description])
+      MochiLib.n1
+      puts "<========================>\nAchivement get!\n#{achievement}\n#{description}\n<========================>".center(26).yellow
+      MochiLib.n2
     end
   end
   
@@ -214,18 +266,16 @@ module MochiLib
     # Method to set options as a workaround to not being able to use global variables as method input and also for other purposes
     def self.set(options)
       $options = options
-      $options.each do |option|
-      end
     end
 
     # Printing the options set and checking to see if the story should continue
     def self.print
-      Game.line
+      MochiLib.line
       puts 'Options:'
       $options.each do |option|
         puts "- #{option}" if option != 0
       end
-      $continue = 1 if $options.empty? == true
+      $continue = true if $options.empty? == true
     end
 
     # Adds (an) option(s)
@@ -248,8 +298,8 @@ module MochiLib
       if $option.to_s == option.to_s && $options.include?($option.to_s) == true
         true
       else
-        if option.to_s == 
-          true
+        if option.to_s.downcase == "exit"
+          exit
         else
           false
         end
@@ -257,23 +307,23 @@ module MochiLib
     end
 
     def self.nao
-      Game.n1
+      MochiLib.n1
       puts "That's not an option!"
-      Game.n2
+      MochiLib.n2
     end
 
     def self.yn
       loop do
-        Game::Options.set(%w[Yes No])
-        Game::Options.print
-        Game.prompt
+        MochiLib::Options.set(%w[Yes No])
+        MochiLib::Options.print
+        MochiLib.prompt
         tmp23424534532 = gets.chomp.capitalize.clean
         if tmp23424534532 == "Yes"
           return "Yes"
         elsif tmp23424534532 == "No"
           return "No"
         else
-          nao
+          MochiLib::Options.nao
         end
       end
     end
@@ -289,9 +339,9 @@ module MochiLib
       elsif time.is_a?(Integer)
         $clock = time
       else
-        Game.n1
+        MochiLib.n1
         puts "Invalid input!"
-        Game.n2
+        MochiLib.n2
       end
       advance
     end
@@ -311,9 +361,9 @@ module MochiLib
 
     # Prints the current time
     def self.print
-      Game.n1
+      MochiLib.n1
       puts "It is now #{$time}."
-      Game.n2
+      MochiLib.n2
     end
 
     def self.advance
