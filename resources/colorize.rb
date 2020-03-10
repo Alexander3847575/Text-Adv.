@@ -96,4 +96,31 @@ class String
   def reverse_color
     colorize(7)
   end
+
+  #some of my stuff
+  def c
+    center(26)
+  end
+
+  def initial
+    self[0,1]
+  end
+
+  #lots of ways to clean up text
+  def clean(type="fast")
+    if type.downcase == "fast"
+      "#{delete!(' ')}"
+      "#{strip}"
+    elsif type.downcase == "fastall"
+      "#{delete!(' ')}"
+    elsif type.downcase == "gsub"
+      "#{gsub!(/\s+/, " ")}"
+    elsif type.downcase == "all"
+      "#{gsub!(/[[:space:]]/, " ")}"
+    else
+      Game::Debug.log("Invalid type for clean function")
+      exit
+    end
+  end
 end
+

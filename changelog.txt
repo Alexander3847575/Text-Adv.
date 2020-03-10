@@ -15,7 +15,8 @@ Alpha 0.2.1 | 05/19/2019
   - More optimization
   - Slight differences in difficulty
 Alpha 0.2.2 | 05/20/2019
-  - Fixed major game breaking bugs involving inventory and difficulty
+  - Fixed major game breaking bugs involving inventory and di
+fficulty
   - Fixed some formatting
   - Added more story
 Alpha 0.2.3 | 05/27/2019
@@ -43,6 +44,20 @@ Alpha 1.2.0 | 6/~/2019
   - Optimized the code
   - Methods are now organized into classes
   - Implemented time
-  - catch +threow 
+  - catch +throw 
   - module
   - Fixed bugs
+Alpha 2.9.0 - I'm Really Lazy Update | 02/0/2020
+  - It's been a while, huh?
+  - This project isn't dead
+  - Waaaay too many changes to list (over double the original project size), so here's some:
+  - You can now have as many saves as you want!
+  - Achievements!
+  - Bug fixes galore!
+  - Tons of optimization!
+  - Plenty of behind the curtain stuff, if you want to use the library!
+  - A full time system!
+  - Way too many exclamation points!
+  - Things forgotten in time forever!
+  - Still no new actual story!
+  - 3.0 is fast approaching...
