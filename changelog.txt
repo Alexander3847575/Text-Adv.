@@ -35,6 +35,18 @@ Alpha 1.1.0 - Optimizing Optimizations Update | 05/30/2019
 Alpha 1.1.1 | 6/3/2019
   - Minor formatting changes
   - Fixed bugs
+Alpha 1.1.2 | 6/4/2019
+  - Fixed bugs
+Alpha 1.2.0 | 6/~/2019
+  - No more stub updates like th ones above! Important bugfixes will get their own patches.
+  - Finished chunk 2
+  - Now supports non-binary genders
+  - Optimized the code
+  - Methods are now organized into classes
+  - Implemented time
+  - catch +throw 
+  - module
+  - Fixed bugs
 Alpha 2.9.0 - I'm Really Lazy Update | 02/0/2020
   - It's been a while, huh?
   - This project isn't dead
